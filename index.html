@@ -26,6 +26,8 @@
     <!-- PDF Libraries for Premium Reports -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- FullCalendar JS untuk Teacher Schedule -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <script>
         tailwind.config = {
@@ -583,6 +585,10 @@
                 if (this.views[this.state.currentView]) appDiv.innerHTML = this.views[this.state.currentView]();
                 else appDiv.innerHTML = `<div class="p-10 text-center">404 - Not Found.</div>`;
 
+                if(this.state.currentView === 'tutor' && this.state.tutorView === 'kalender') {
+                    this.initCalendar();
+                }
+
                 if(this.state.temp.searchPelamar) this.searchTable(this.state.temp.searchPelamar, 'tbl_rek');
                 if(this.state.temp.searchTutor) this.searchTable(this.state.temp.searchTutor, 'tbl_tut');
                 if(this.state.temp.searchSiswa) this.searchTable(this.state.temp.searchSiswa, 'tbl_sis');
@@ -594,6 +600,36 @@
                         el.focus(); const len = el.value.length; el.setSelectionRange(len, len);
                     }
                 }
+            },
+
+            initCalendar() {
+                setTimeout(() => {
+                    const calendarEl = document.getElementById('tutor-calendar');
+                    if (!calendarEl || !window.FullCalendar) return;
+                    
+                    const u = this.state.user;
+                    const myJadwalAll = this.state.db.jadwal.filter(j => j.id_tutor === u.id_tutor && j.status !== 'Canceled');
+                    
+                    const events = myJadwalAll.map(j => {
+                        let jDate = j.tgl; if(String(jDate).includes('T')) jDate = String(jDate).split('T')[0];
+                        let startTime = '00:00'; if(j.jam) startTime = j.jam.split('-')[0].trim().replace('.', ':');
+                        
+                        let bgColor = '#3b82f6'; 
+                        if(j.status === 'Selesai') bgColor = '#10b981'; 
+                        else if(j.status === 'Menunggu Cancel') bgColor = '#f59e0b'; 
+                        
+                        return { id: j.id, title: j.siswa.replace('ROMBEL - ', ''), start: jDate + 'T' + startTime + ':00', backgroundColor: bgColor, borderColor: bgColor };
+                    });
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+                        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+                        events: events,
+                        eventClick: function(info) { App.state.temp.detailJadwalId = info.event.id; App.changeTutorView('jadwal'); },
+                        height: 'auto', locale: 'id', buttonText: { today:'Hari Ini', month:'Bulan', week:'Minggu', day:'Hari', list:'Agenda' }
+                    });
+                    calendar.render();
+                }, 100);
             },
 
             navigate(view) { this.state.currentView = view; this.render(); window.scrollTo(0,0); },
@@ -1074,6 +1110,7 @@
                 ` : `
                     ${this.renderNav('Dashboard', 'fa-home', view==='dashboard')}
                     ${this.renderNav('Profil Saya', 'fa-user', view==='profil')}
+                    ${this.renderNav('Teacher Schedule', 'fa-calendar-alt', view==='kalender')}
                     ${this.renderNav('Jadwal & Report', 'fa-calendar-check', view==='jadwal')}
                     ${this.renderNav('Pendapatan', 'fa-chart-line', view==='pendapatan')}
                     ${this.renderNav('Reimburse', 'fa-receipt', view==='reimburse')}
@@ -1085,7 +1122,7 @@
                         ${overlay}
                         <aside class="${sidebarClass} transition-all duration-300 fixed h-full bg-white border-r border-slate-200 z-50 flex flex-col pt-4 shadow-sm">
                             <div class="px-5 flex items-center justify-between mb-8">
-                                <div class="flex items-center gap-3"><img src="${App.state.settings.logo_url}" class="w-9 h-9 rounded-md shadow-sm border border-slate-100 bg-white p-0.5"><span class="font-bold text-darkblue text-lg font-display ${!isOpen ? 'md:hidden' : ''}">OMS Panel</span></div>
+                                <div class="flex items-center gap-3"><img src="${App.state.settings.logo_url}" class="w-9 h-9 rounded-md shadow-sm border border-slate-100 bg-white p-0.5 object-contain"><span class="font-bold text-darkblue text-lg font-display ${!isOpen ? 'md:hidden' : ''}">OMS Panel</span></div>
                                 <button onclick="App.toggleSidebar()" class="md:hidden text-slate-400 p-2 pointer-events-auto"><i class="fas fa-times"></i></button>
                             </div>
                             <nav class="flex-1 px-3 flex flex-col gap-1 pb-24 overflow-y-auto no-scrollbar">${navs}</nav>
@@ -1109,7 +1146,7 @@
 
             renderNav(title, icon, isActive) {
                 const role = App.state.user.role; const fn = role === 'admin' ? `App.changeAdminView` : `App.changeTutorView`;
-                const viewMap = {'Dashboard':'dashboard','Rekrutmen':'rekrutmen','Master Tutor':'tutor','Master Siswa':'siswa','Master Layanan':'layanan','Jadwal KBM':'jadwal','Report KBM':'report','Payroll Tutor':'payroll','Rincian Sesi Siswa':'rincian_sesi','Layanan Tutor':'layanan_tutor','Pengaturan':'setting','Profil Saya':'profil','Jadwal & Report':'jadwal','Pendapatan':'pendapatan','Reimburse':'reimburse','Bantuan':'bantuan'};
+                const viewMap = {'Dashboard':'dashboard','Rekrutmen':'rekrutmen','Master Tutor':'tutor','Master Siswa':'siswa','Master Layanan':'layanan','Jadwal KBM':'jadwal','Report KBM':'report','Payroll Tutor':'payroll','Rincian Sesi Siswa':'rincian_sesi','Layanan Tutor':'layanan_tutor','Pengaturan':'setting','Profil Saya':'profil','Teacher Schedule':'kalender','Jadwal & Report':'jadwal','Pendapatan':'pendapatan','Reimburse':'reimburse','Bantuan':'bantuan'};
                 const viewName = viewMap[title] || 'dashboard';
                 return `<button onclick="${fn}('${viewName}'); if(window.innerWidth<768) App.toggleSidebar();" class="flex items-center gap-3 px-4 py-3 rounded-xl transition group pointer-events-auto ${isActive ? 'bg-blue-50 text-royalblue font-bold border border-blue-100/50' : 'text-slate-500 hover:bg-slate-50 hover:text-darkblue'} w-full text-left overflow-hidden"><div class="w-6 flex justify-center"><i class="fas ${icon} ${isActive?'text-royalblue':'text-slate-400'}"></i></div><span class="text-sm whitespace-nowrap ${!App.state.sidebarOpen ? 'md:hidden' : ''}">${title}</span></button>`;
             },
@@ -1432,27 +1469,75 @@
                 switch(view) {
                     case 'dashboard':
                         const myJadwal = myJadwalAll.filter(j => j.status !== 'Canceled');
+                        const pData = db.tutor.find(t => t.id === u.id_tutor) || {};
+                        const defFoto = pData.foto || 'https://ui-avatars.com/api/?name='+u.nama.replace(/ /g,'+');
+                        
+                        const hour = new Date().getHours();
+                        let greeting = 'Selamat Pagi';
+                        if(hour >= 11 && hour < 15) greeting = 'Selamat Siang';
+                        else if(hour >= 15 && hour < 18) greeting = 'Selamat Sore';
+                        else if(hour >= 18) greeting = 'Selamat Malam';
+                        
+                        const motivasi = ['Semangat mengajar hari ini!', 'Mari cerdaskan anak bangsa!', 'Satu sesi, sejuta inspirasi!', 'Jadilah Owlstar yang bersinar!'];
+                        const randomMotivasi = motivasi[Math.floor(Math.random() * motivasi.length)];
+
                         return `
-                            <div class="glass-panel p-6 sm:p-8 rounded-[2rem] relative overflow-hidden mb-6 bg-gradient-to-br from-white to-blue-50 border border-slate-200">
-                                <div class="absolute -right-6 -bottom-6 text-9xl text-blue-100/50 transform rotate-12 pointer-events-none"><i class="fas fa-chalkboard-teacher"></i></div>
-                                <h2 class="text-2xl sm:text-3xl font-bold text-darkblue mb-2 relative z-10 font-display">Selamat Datang, ${u.nama}!</h2>
-                                <p class="text-slate-500 relative z-10 text-sm max-w-lg mb-6">Cek jadwal mengajar Anda hari ini dan pastikan mengisi Report KBM setelah sesi selesai agar pendapatan otomatis tercatat.</p>
-                                <div class="flex gap-4 relative z-10 flex-wrap">
-                                    <div class="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-sm flex-1 min-w-[120px]"><div class="text-xs font-bold text-slate-500 uppercase mb-1 whitespace-nowrap">Total Sesi Anda</div><div class="text-2xl font-bold font-display text-royalblue">${myJadwal.length}</div></div>
-                                    <div class="bg-white border border-slate-200 rounded-xl px-5 py-3 shadow-sm flex-1 min-w-[120px]"><div class="text-xs font-bold text-slate-500 uppercase mb-1 whitespace-nowrap">Sesi Selesai</div><div class="text-2xl font-bold font-display text-emerald-600">${myJadwal.filter(j=>j.status==='Selesai').length}</div></div>
+                            <!-- HERO DASHBOARD APP-LIKE -->
+                            <div class="glass-panel p-6 sm:p-10 rounded-[2rem] relative overflow-hidden mb-8 bg-gradient-to-br from-royalblue to-blue-900 border-0 shadow-2xl shadow-blue-900/20">
+                                <div class="absolute -right-10 -bottom-10 text-9xl text-white/10 transform rotate-12 pointer-events-none"><i class="fas fa-graduation-cap"></i></div>
+                                
+                                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10 text-center sm:text-left">
+                                    <img src="${defFoto}" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white/30 shadow-xl object-cover bg-white shrink-0">
+                                    <div class="flex-1">
+                                        <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-blue-100 text-xs font-bold mb-3 border border-white/20"><i class="fas fa-sun text-gold mr-1"></i> ${greeting}</div>
+                                        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-2 font-display">${u.nama}</h2>
+                                        <p class="text-blue-100 text-sm sm:text-base max-w-xl mb-6 leading-relaxed">"${randomMotivasi}" <br> Cek jadwal KBM dan pastikan mengisi Report setelah sesi selesai.</p>
+                                        
+                                        <div class="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4">
+                                            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-3 shadow-inner flex-1 min-w-[130px]">
+                                                <div class="text-[10px] sm:text-xs font-bold text-blue-200 uppercase mb-1 whitespace-nowrap">Total Sesi Anda</div>
+                                                <div class="text-2xl font-bold font-display text-white">${myJadwal.length}</div>
+                                            </div>
+                                            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-3 shadow-inner flex-1 min-w-[130px]">
+                                                <div class="text-[10px] sm:text-xs font-bold text-emerald-300 uppercase mb-1 whitespace-nowrap">Sesi Selesai</div>
+                                                <div class="text-2xl font-bold font-display text-emerald-400">${myJadwal.filter(j=>j.status==='Selesai').length}</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            
                             <h3 class="font-bold text-darkblue mb-4 text-lg flex items-center gap-2 border-b border-slate-200 pb-2"><i class="fas fa-bullhorn text-gold"></i> Papan Pengumuman</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 ${db.pengumuman.slice().reverse().map(p => `
-                                    <div class="glass-card overflow-hidden flex flex-col hover:shadow-lg transition duration-300 border border-slate-200">
+                                    <div class="bg-white rounded-2xl overflow-hidden flex flex-col hover:shadow-lg shadow-sm transition border border-slate-200">
                                         ${p.link_gambar ? `<img src="${p.link_gambar}" class="w-full h-40 object-cover border-b border-slate-100">` : `<div class="h-2 bg-royalblue"></div>`}
                                         <div class="p-5 flex-1"><div class="text-xs text-slate-400 font-bold mb-2 flex items-center gap-1"><i class="far fa-calendar-alt"></i> ${this.formatTgl(p.tanggal)}</div><h4 class="font-bold text-darkblue mb-2 text-lg leading-tight">${p.judul || 'Info Penting'}</h4><p class="text-sm text-slate-600 line-clamp-3">${p.isi}</p></div>
                                         <button onclick="Swal.fire({title:'${p.judul}', html:'${p.link_gambar?`<img src=${p.link_gambar} class=\\'w-full rounded-lg mb-4 shadow-sm\\'>`:''}<p class=\\'text-left text-sm text-slate-700 leading-relaxed\\'>${p.isi.replace(/\n/g,'<br>')}</p>'})" class="w-full py-3 bg-slate-50 text-royalblue font-bold text-sm border-t border-slate-100 hover:bg-blue-50 transition pointer-events-auto">Baca Selengkapnya</button>
                                     </div>
-                                `).join('') || '<div class="col-span-1 md:col-span-2 text-center text-slate-400 text-sm py-10 glass-panel border-dashed border-2 border-slate-200"><i class="fas fa-inbox text-3xl mb-3 block text-slate-300"></i>Belum ada pengumuman dari Admin.</div>'}
+                                `).join('') || '<div class="col-span-1 md:col-span-2 text-center text-slate-400 text-sm py-10 bg-white rounded-2xl border-dashed border-2 border-slate-200"><i class="fas fa-inbox text-3xl mb-3 block text-slate-300"></i>Belum ada pengumuman dari Admin.</div>'}
                             </div>
                         `;
+
+                    case 'kalender':
+                        return this.wrap('Teacher Schedule', 'fa-calendar-alt', '', `
+                            <div class="bg-white p-3 sm:p-5 rounded-3xl border border-slate-200 shadow-sm relative z-10 overflow-hidden">
+                                <div class="bg-blue-50 p-4 rounded-xl mb-4 text-sm text-darkblue border border-blue-100 flex items-start gap-3">
+                                    <i class="fas fa-info-circle text-royalblue mt-1"></i>
+                                    <p><b>Kalender Mengajar:</b> Klik pada event jadwal di kalender untuk melihat detail, link zoom, absensi, atau mengisi report kelas.</p>
+                                </div>
+                                <style>
+                                    .fc .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; color: #0f172a; font-family: 'Poppins', sans-serif; }
+                                    .fc .fc-button-primary { background-color: #2563eb !important; border-color: #2563eb !important; font-weight: 600; text-transform: capitalize; border-radius: 0.5rem; }
+                                    .fc .fc-button-primary:hover { background-color: #1d4ed8 !important; border-color: #1d4ed8 !important; }
+                                    .fc-theme-standard td, .fc-theme-standard th { border-color: #e2e8f0; }
+                                    .fc-event { cursor: pointer; border-radius: 6px; padding: 2px 4px; border: none; font-size: 0.75rem; font-weight: bold; }
+                                    .fc-list-event { cursor: pointer; }
+                                    .fc-list-event:hover td { background-color: #eff6ff !important; }
+                                </style>
+                                <div id="tutor-calendar" class="min-h-[500px] pointer-events-auto relative z-20"></div>
+                            </div>
+                        `);
                     case 'profil':
                         const pData = db.tutor.find(t => t.id === u.id_tutor) || {};
                         const defFoto = pData.foto||'https://ui-avatars.com/api/?name='+u.nama.replace(/ /g,'+');
