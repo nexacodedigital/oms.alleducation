@@ -565,6 +565,13 @@
                 });
                 
                 this.fetchDataRealtime();
+
+                // AUTO-SYNC REALTIME: Sinkronkan database setiap 10 detik di balik layar
+                setInterval(() => {
+                    if(!this.state.isSyncing) {
+                        this.performAPIAction('getData', {}, '', true);
+                    }
+                }, 10000);
             },
 
             render() {
@@ -1688,7 +1695,10 @@
                 if(file) reader.readAsDataURL(file);
             },
 
-            modalCancelJadwal(id) {
+           modalCancelJadwal(id) {
+                const j = this.state.db.jadwal.find(x => x.id === id);
+                let jDate = j.tgl; if(String(jDate).includes('T')) jDate = String(jDate).split('T')[0];
+                
                 Swal.fire({
                     title: 'Ajukan Cancel Jadwal',
                     html: `
@@ -1704,11 +1714,21 @@
                     preConfirm: () => {
                         const alasan = document.getElementById('cancel_alasan').value;
                         if(!alasan) return Swal.showValidationMessage('Alasan wajib diisi!');
-                        this.performAPIAction('ajukanCancel', {id: id, alasan: alasan}, 'Pengajuan Cancel Terkirim ke HRD');
+                        
+                        // Kirim data LENGKAP ke backend
+                        this.performAPIAction('ajukanCancel', {
+                            id: id,
+                            id_jadwal: id,
+                            tgl: jDate,
+                            jam: j.jam,
+                            id_tutor: j.id_tutor,
+                            nama_tutor: j.nama_tutor,
+                            siswa: j.siswa,
+                            alasan: alasan
+                        }, 'Pengajuan Cancel Terkirim ke HRD');
                     }
                 });
             },
-
             modalReschedule(id, oldTgl, oldJam) {
                 Swal.fire({
                     title: 'Reschedule Jadwal',
