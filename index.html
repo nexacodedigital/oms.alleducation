@@ -538,15 +538,23 @@
             },
 
             init() {
-                // Set Default Tanggal Filter ke Periode Cut-Off (Tgl 1 s/d Akhir Bulan Ini)
-                const now = new Date();
-                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                init() {
+                // Perbaiki Zona Waktu untuk Default Periode Cut-Off (Tgl 1 s/d Akhir Bulan Ini)
+                const d = new Date();
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
                 
-                this.state.filters.tglMulai = firstDay;
-                this.state.filters.tglAkhir = lastDay;
-                this.state.filters.rincianTglMulai = firstDay;
-                this.state.filters.rincianTglAkhir = lastDay;
+                // Cari tanggal terakhir di bulan ini (misal: 30 atau 31)
+                const lastDate = new Date(yyyy, d.getMonth() + 1, 0).getDate();
+                const ddLast = String(lastDate).padStart(2, '0');
+                
+                const firstDayLocal = `${yyyy}-${mm}-01`;
+                const lastDayLocal = `${yyyy}-${mm}-${ddLast}`;
+                
+                this.state.filters.tglMulai = firstDayLocal;
+                this.state.filters.tglAkhir = lastDayLocal;
+                this.state.filters.rincianTglMulai = firstDayLocal;
+                this.state.filters.rincianTglAkhir = lastDayLocal;
 
                 const savedSession = localStorage.getItem('oms_session');
                 const savedDb = localStorage.getItem('oms_db_cache');
@@ -578,12 +586,17 @@
                 
                 this.fetchDataRealtime();
 
-                // AUTO-SYNC REALTIME: Sinkronkan database setiap 10 detik di balik layar
+               // AUTO-SYNC REALTIME (TANPA GANGGU USER):
                 setInterval(() => {
-                    if(!this.state.isSyncing) {
+                    // Jangan sync jika ada pop-up SweetAlert terbuka atau user sedang fokus ngetik di input/textarea
+                    const isAlertOpen = Swal.isVisible();
+                    const activeEl = document.activeElement;
+                    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+                    
+                    if (!this.state.isSyncing && !isAlertOpen && !isTyping) {
                         this.performAPIAction('getData', {}, '', true);
                     }
-                }, 10000);
+                }, 10000); // Cek update setiap 10 detik tanpa mengganggu layar
             },
 
             render() {
@@ -778,11 +791,18 @@
                             const activeEl = document.activeElement;
                             const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
                             
-                            // Hanya refresh layar jika user TIDAK SEDANG mengetik di form
-                            if (!isTyping) {
+                            // PENGAMAN RENDER: Cek lagi apakah user sedang ngetik atau ada pop-up
+                            const stillTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT');
+                            const popupOpen = Swal.isVisible();
+                            
+                            // Hanya render (refresh UI) jika murni sedang stand-by, biar nggak kepental!
+                            if (!stillTyping && !popupOpen) {
                                 this.render();
                             }
-                        } else { this.fetchDataRealtime(); }
+                        } else { 
+                            // Ini untuk action selain getData (seperti submit form), langsung render instan 0 detik
+                            this.fetchDataRealtime(); 
+                        }
                         if(!silent && isBlocking && successMsg) Swal.fire({ icon: 'success', title: 'Berhasil', text: successMsg, timer: 1500, showConfirmButton: false });
                     } else { 
                         if(!silent) Swal.fire('Error', res.message, 'error'); 
