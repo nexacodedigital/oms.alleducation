@@ -538,7 +538,6 @@
             },
 
             init() {
-                init() {
                 // Perbaiki Zona Waktu untuk Default Periode Cut-Off (Tgl 1 s/d Akhir Bulan Ini)
                 const d = new Date();
                 const yyyy = d.getFullYear();
@@ -573,22 +572,26 @@
                     } catch(e){}
                 }
 
+                // Hapus loader jika masih ada, lalu render halaman instan 0 detik
                 const loader = document.getElementById('initial-loader'); 
-                if (loader) loader.remove();
-                this.render();
+                if(loader) loader.remove();
                 
+                this.render(); 
+                
+                // Jam Real-time
                 setInterval(() => { const now = new Date(); const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']; this.state.time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} WIB`; this.state.day = days[now.getDay()]; const clockEl = document.getElementById('rt-clock'); if(clockEl) clockEl.innerText = `${this.state.day}, ${this.state.time}`; }, 1000);
                 
+                // Sidebar Responsive
                 let lastWidth = window.innerWidth;
                 window.addEventListener('resize', () => { 
                     if(window.innerWidth !== lastWidth) { lastWidth = window.innerWidth; this.state.sidebarOpen = window.innerWidth >= 768; this.render(); }
                 });
                 
+                // Tarik data pertama kali di background
                 this.fetchDataRealtime();
 
-               // AUTO-SYNC REALTIME (TANPA GANGGU USER):
+                // AUTO-SYNC REALTIME (TANPA GANGGU USER SAAT NGETIK):
                 setInterval(() => {
-                    // Jangan sync jika ada pop-up SweetAlert terbuka atau user sedang fokus ngetik di input/textarea
                     const isAlertOpen = Swal.isVisible();
                     const activeEl = document.activeElement;
                     const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
@@ -596,9 +599,8 @@
                     if (!this.state.isSyncing && !isAlertOpen && !isTyping) {
                         this.performAPIAction('getData', {}, '', true);
                     }
-                }, 10000); // Cek update setiap 10 detik tanpa mengganggu layar
+                }, 10000);
             },
-
             render() {
                 const activeId = document.activeElement ? document.activeElement.id : null;
                 const appDiv = document.getElementById('app');
