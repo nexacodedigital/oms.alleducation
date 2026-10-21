@@ -687,9 +687,9 @@
                             : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
                         events: events,
                         eventClick: function(info) { App.state.temp.detailJadwalId = info.event.id; App.changeTutorView('jadwal'); },
-                        height: isMobile ? 'auto' : 600,
-                        contentHeight: 'auto',
-                        stickyHeaderDates: true,
+                        height: isMobile ? 'auto' : 700, 
+                        stickyHeaderDates: true, 
+                        expandRows: true,
                         locale: 'id', 
                         buttonText: { today:'Hari Ini', month:'Bulan', week:'Minggu', day:'Hari', list:'Agenda' }
                     });
@@ -1628,6 +1628,7 @@
                                     .fc-event { cursor: pointer; border-radius: 6px; padding: 2px 4px; border: none; font-size: 0.75rem; font-weight: bold; }
                                     .fc-list-event { cursor: pointer; }
                                     .fc-list-event:hover td { background-color: #eff6ff !important; }
+                                    .fc-scrollgrid-section-header th { position: sticky; top: 0; z-index: 50; background-color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
                                 </style>
                                 <div id="tutor-calendar" class="min-h-[500px] pointer-events-auto relative z-20"></div>
                             </div>
