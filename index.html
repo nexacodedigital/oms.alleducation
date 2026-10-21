@@ -710,7 +710,8 @@
                 
                 this.state.isSyncing = true;
                 const syncEl = document.getElementById('sync-badge-container');
-                if(syncEl) syncEl.innerHTML = '<div class="text-xs font-bold text-royalblue bg-blue-50 px-3 py-1 rounded-full shadow-sm border border-blue-100 flex items-center gap-1"><i class="fas fa-sync fa-spin"></i> Menyimpan...</div>';
+                // Hanya munculkan badge jika ini bukan proses background yang silent
+                if(syncEl && !silent) syncEl.innerHTML = '<div class="text-xs font-bold text-royalblue bg-blue-50 px-3 py-1 rounded-full shadow-sm border border-blue-100 flex items-center gap-1"><i class="fas fa-sync fa-spin"></i> Memproses...</div>';
                 
                 try {
                     let shouldRenderOptimistic = false;
@@ -805,44 +806,33 @@
                             this.state.dataLoaded = true;
                             const loader = document.getElementById('initial-loader'); if(loader) loader.remove();
                             
-                            // Tetap simpan data lengkap di RAM aplikasi
+                            // CEK PERUBAHAN DATA: Bandingkan data lama dan baru (tanpa menghitung foto base64 biar ringan)
+                            const getLightData = (dbObj) => JSON.stringify({ ...dbObj, report: (dbObj.report || []).map(r => ({ ...r, link_foto: '' })) });
+                            const isDataChanged = getLightData(this.state.db) !== getLightData(res.data);
+
                             this.state.db = res.data; 
                             this.state.settings = res.settings; 
                             
-                            // Simpan versi ringan ke localStorage agar tidak error memori penuh
                             try {
-                                const lightReport = (res.data.report || []).map(r => ({
-                                    ...r,
-                                    link_foto: (r.link_foto && String(r.link_foto).startsWith('data:image')) ? '-' : r.link_foto
-                                }));
-                                const cacheStr = JSON.stringify({ db: { ...res.data, report: lightReport }, settings: res.settings });
-                                localStorage.setItem('oms_db_cache', cacheStr);
-                            } catch (storageErr) {
-                                console.warn('LocalStorage penuh, melewati penyimpanan cache:', storageErr);
-                                localStorage.removeItem('oms_db_cache');
-                            }
+                                const lightReport = (res.data.report || []).map(r => ({ ...r, link_foto: (r.link_foto && String(r.link_foto).startsWith('data:image')) ? '-' : r.link_foto }));
+                                localStorage.setItem('oms_db_cache', JSON.stringify({ db: { ...res.data, report: lightReport }, settings: res.settings }));
+                            } catch (storageErr) { localStorage.removeItem('oms_db_cache'); }
                             
-                            // PENGAMAN FORM: Cek apakah kursor user sedang aktif di dalam kolom input/textarea
-                            const activeEl = document.activeElement;
-                            const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
-                            
-                            // PENGAMAN RENDER: Cek lagi apakah user sedang ngetik atau ada pop-up
+                            // PENGAMAN RENDER: Hanya refresh layar JIKA data benar-benar berubah DAN user tidak sedang mengetik
                             const stillTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'SELECT');
                             const popupOpen = Swal.isVisible();
                             
-                            // Hanya render (refresh UI) jika murni sedang stand-by, biar nggak kepental!
-                            if (!stillTyping && !popupOpen) {
+                            if (isDataChanged && !stillTyping && !popupOpen) {
                                 this.render();
                             }
                         } else { 
-                            // Ini untuk action selain getData (seperti submit form), langsung render instan 0 detik
                             this.fetchDataRealtime(); 
                         }
                         if(!silent && isBlocking && successMsg) Swal.fire({ icon: 'success', title: 'Berhasil', text: successMsg, timer: 1500, showConfirmButton: false });
                     } else { 
                         if(!silent) Swal.fire('Error', res.message, 'error'); 
                     }
-                    this.state.isSyncing = false; if(syncEl) syncEl.innerHTML = ''; return res;
+                    this.state.isSyncing = false; if(syncEl && !silent) syncEl.innerHTML = ''; return res;
                 } catch (err) { 
                     if(!silent && isBlocking && Swal.isVisible()) Swal.close();
                     if(!silent && !isBlocking) Swal.fire({toast: true, position: 'top-end', icon: 'warning', title: 'Tersimpan Offline. Menunggu sinyal...', showConfirmButton: false, timer: 3000}); 
