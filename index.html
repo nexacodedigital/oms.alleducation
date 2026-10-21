@@ -216,6 +216,39 @@
                 const blob = new Blob([csv], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'Master_Data_Tutor_OMS.csv'); a.click();
             },
+            exportRekapPayrollCSV(bulan) {
+                if(!bulan) return Swal.fire('Peringatan', 'Pilih bulan terlebih dahulu di kolom input.', 'warning');
+                
+                const blnFilter = bulan.split('-')[1]; 
+                const thnFilter = bulan.split('-')[0];
+                
+                let csv = "ID_Tutor,Nama_Tutor,Bank,No_Rekening,Total_Gaji_Bersih\n";
+                let hasData = false;
+
+                this.state.db.tutor.forEach(tutor => {
+                    const riwayat = this.state.db.jadwal.filter(j => j.id_tutor === tutor.id && j.status === 'Selesai' && String(j.tgl).startsWith(`${thnFilter}-${blnFilter}`));
+                    const reimburses = this.state.db.reimburse.filter(r => r.id_tutor === tutor.id && r.status === 'Approved' && String(r.tgl).startsWith(`${thnFilter}-${blnFilter}`));
+                    
+                    if(riwayat.length > 0 || reimburses.length > 0) {
+                        let totHonor = 0, totTr = 0, totReimb = 0;
+                        riwayat.forEach(j => { totHonor += parseInt(j.fee||0); totTr += parseInt(j.transport||0); });
+                        reimburses.forEach(r => totReimb += parseInt(r.nominal||0));
+                        let totalAll = totHonor + totTr + totReimb;
+                        
+                        csv += `"${tutor.id}","${tutor.nama}","${tutor.bank||'-'}","${tutor.no_rek||'-'}","${totalAll}"\n`;
+                        hasData = true;
+                    }
+                });
+
+                if(!hasData) return Swal.fire('Data Kosong', 'Tidak ada data gaji (Selesai/Approved) untuk bulan ' + bulan, 'error');
+
+                const blob = new Blob([csv], { type: 'text/csv' }); 
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a'); 
+                a.setAttribute('href', url); 
+                a.setAttribute('download', `Rekap_Transfer_Gaji_${bulan}.csv`); 
+                a.click();
+            },
 
             downloadTemplateSiswa() {
                 const csv = "Nama_Siswa,Jenjang,Layanan_Privat,Email_Kontak_Ortu\nSiswa Contoh,SD,Matematika SD,contoh@gmail.com\nSiswa Dua,SMP,Fisika,ortu2@gmail.com";
@@ -1441,15 +1474,19 @@
                             `;
                         }
 
-                        return this.wrap('Penerbitan Slip Gaji', 'fa-wallet', `
-                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        return this.wrap('Rekap & Penerbitan Slip Gaji', 'fa-wallet', `
+                            <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto items-center">
                                 <input type="month" onchange="App.state.filters.payrollBln=this.value; App.render()" value="${this.state.filters.payrollBln}" class="w-full sm:w-auto bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-royalblue pointer-events-auto">
+                                <button onclick="App.exportRekapPayrollCSV(App.state.filters.payrollBln)" class="w-full sm:w-auto bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-700 transition whitespace-nowrap flex items-center justify-center gap-2 pointer-events-auto"><i class="fas fa-file-excel"></i> Rekap Transfer Massal</button>
+                                
+                                <div class="hidden sm:block w-px h-8 bg-slate-200 mx-2"></div>
+                                
                                 <select onchange="App.state.filters.payrollTut=this.value; App.render()" class="w-full sm:w-48 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-royalblue pointer-events-auto">
-                                    <option value="">Pilih Tutor</option>${db.tutor.map(t=>`<option value="${t.id}" ${fTut===t.id?'selected':''}>${t.nama}</option>`).join('')}
+                                    <option value="">Pilih Tutor (Individu)</option>${db.tutor.map(t=>`<option value="${t.id}" ${fTut===t.id?'selected':''}>${t.nama}</option>`).join('')}
                                 </select>
                                 <button onclick="App.cetakPayslip(App.state.filters.payrollTut, App.state.filters.payrollBln)" class="w-full sm:w-auto bg-royalblue text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition whitespace-nowrap flex items-center justify-center gap-2 pointer-events-auto"><i class="fas fa-file-pdf"></i> Cetak Slip PDF</button>
                             </div>
-                        `, `<div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-sm text-darkblue flex items-start gap-3 mb-2"><i class="fas fa-info-circle text-royalblue mt-1 shrink-0"></i><p>Pilih Bulan dan Nama Tutor di atas, lalu klik <b>Cetak Slip PDF</b>. Sistem akan otomatis mengakumulasi total honor dari sesi yang "Selesai" ditambah dengan uang Reimburse yang telah "Approved".</p></div>${previewHtml}`);
+                        `, `<div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-sm text-darkblue flex items-start gap-3 mb-2"><i class="fas fa-info-circle text-royalblue mt-1 shrink-0"></i><p>Pilih Bulan lalu klik <b>Rekap Transfer Massal</b> untuk mengunduh Excel (CSV) daftar gaji seluruh tutor di bulan tersebut. Atau pilih Nama Tutor untuk mencetak <b>Slip PDF Individu</b>.</p></div>${previewHtml}`);
 
                     case 'rincian_sesi':
                         const fMulai = this.state.filters.rincianTglMulai; const fAkhir = this.state.filters.rincianTglAkhir; const fSiswa = this.state.filters.rincianSiswa;
