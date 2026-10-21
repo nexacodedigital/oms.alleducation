@@ -66,7 +66,7 @@
         <div class="min-h-screen flex flex-col items-center justify-center bg-slate-50 absolute inset-0 z-50 transition-opacity duration-300" id="initial-loader">
             <div class="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 border border-slate-100 p-3 relative overflow-hidden">
                 <div class="absolute inset-0 bg-blue-50/50 animate-pulse"></div>
-                <img src="https://ui-avatars.com/api/?name=OMS&background=2563eb&color=fff&rounded=true" class="w-full h-full rounded-2xl logo-spinner-img relative z-10" id="initial-logo">
+               <img src="https://iili.io/CMttawP.md.png" class="w-full h-full rounded-2xl logo-spinner-img relative z-10 object-contain p-1" id="initial-logo">
             </div>
             <h3 class="text-xl font-bold font-display text-darkblue mb-2">Memproses...</h3>
             <div class="text-slate-500 font-medium text-sm animate-pulse flex items-center gap-2"><i class="fas fa-circle-notch fa-spin text-royalblue"></i> Memuat Sistem...</div>
@@ -85,7 +85,7 @@
                 dataLoaded: false, 
                 filters: { tglMulai: '', tglAkhir: '', adminJadwalTgl: '', adminJadwalTutor: '', rincianTglMulai: '', rincianTglAkhir: '', rincianSiswa: '', payrollBln: '', payrollTut: '' }, 
                 time: '', day: '', isSyncing: false,
-                settings: { logo_url: 'https://ui-avatars.com/api/?name=OMS&background=2563eb&color=fff&rounded=true', favicon_url: '', alur_recruitment: 'Submit CV, Screening HR, Interview Online, Micro Teaching, Hired' },
+                settings: { logo_url: 'https://iili.io/CMttawP.md.png', favicon_url: '', alur_recruitment: 'Submit CV, Screening HR, Interview Online, Micro Teaching, Hired' },
                 db: { pengumuman: [], pelamar: [], tutor: [], siswa: [], jadwal: [], report: [], reimburse: [], tiket: [], layanan: [], rombel: [] },
                 temp: { detailJadwalId: null, searchPelamar: '', searchTutor: '', searchSiswa: '', searchReport: '', tabPelamar: 'aktif', tabReimburse: 'aktif', tabTiket: 'aktif', tabJadwal: 'aktif', tabJadwalTut: 'aktif' }
             },
@@ -1538,24 +1538,24 @@
                                 <div id="tutor-calendar" class="min-h-[500px] pointer-events-auto relative z-20"></div>
                             </div>
                         `);
-                    case 'profil':
-                        const pData = db.tutor.find(t => t.id === u.id_tutor) || {};
-                        const defFoto = pData.foto||'https://ui-avatars.com/api/?name='+u.nama.replace(/ /g,'+');
+                   case 'profil':
+                        const profData = db.tutor.find(t => t.id === u.id_tutor) || {};
+                        const defaultFoto = profData.foto||'https://ui-avatars.com/api/?name='+u.nama.replace(/ /g,'+');
                         return this.wrap('Data Profil & Administrasi', 'fa-user', '', `
                             <form onsubmit="event.preventDefault(); App.performAPIAction('updateProfil', {id_tutor: '${u.id_tutor}', no_hp: document.getElementById('pf_hp').value, bank: document.getElementById('pf_bank').value, no_rek: document.getElementById('pf_rek').value, foto: document.getElementById('pf_foto_base64').value, pass: document.getElementById('pf_pass').value}, 'Profil Diperbarui')" class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl relative">
                                 <div class="md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
-                                    <img src="${defFoto}" id="pf_foto_preview" class="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm bg-white p-0.5 object-cover shrink-0">
+                                    <img src="${defaultFoto}" id="pf_foto_preview" class="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm bg-white p-0.5 object-cover shrink-0">
                                     <div class="flex-1 w-full overflow-hidden">
                                         <label class="text-xs font-bold text-slate-500 mb-1 block">Upload Foto Profil Baru (Otomatis Tampil)</label>
                                         <input type="file" id="pf_foto_file" accept="image/*" onchange="App.handleProfilePicUpload(event)" class="w-full bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-royalblue transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-royalblue hover:file:bg-blue-100 cursor-pointer pointer-events-auto">
-                                        <input type="hidden" id="pf_foto_base64" value="${defFoto}">
+                                        <input type="hidden" id="pf_foto_base64" value="${defaultFoto}">
                                     </div>
                                 </div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Lengkap</label><input type="text" value="${u.nama}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Email Login</label><input type="text" value="${u.email}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No WhatsApp Aktif</label><input type="text" id="pf_hp" value="${pData.no_hp||''}" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Bank</label><input type="text" id="pf_bank" value="${pData.bank||''}" placeholder="Contoh: BCA, Mandiri" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No Rekening</label><input type="text" id="pf_rek" value="${pData.no_rek||''}" placeholder="Nomor rekening yang valid" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No WhatsApp Aktif</label><input type="text" id="pf_hp" value="${profData.no_hp||''}" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Bank</label><input type="text" id="pf_bank" value="${profData.bank||''}" placeholder="Contoh: BCA, Mandiri" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No Rekening</label><input type="text" id="pf_rek" value="${profData.no_rek||''}" placeholder="Nomor rekening yang valid" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
                                 <div class="md:col-span-2 pt-4 border-t border-slate-100"><h4 class="font-bold text-darkblue mb-4 text-sm"><i class="fas fa-lock text-slate-400"></i> Ganti Password Akun</h4></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Password Baru</label><input type="password" id="pf_pass" placeholder="Kosongkan jika tidak diganti" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
                                 <div class="md:col-span-2 mt-4"><button type="submit" class="w-full sm:w-auto bg-royalblue text-white px-8 py-3 rounded-xl font-bold shadow-md shadow-blue-500/30 hover:bg-blue-700 transition pointer-events-auto">Simpan Perubahan Profil</button></div>
