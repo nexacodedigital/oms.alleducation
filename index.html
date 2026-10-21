@@ -1481,8 +1481,13 @@
                         
                         const filteredJadwalTutor = myJadwalAll.filter(j => {
                             let matchTab = true;
-                            if(this.state.temp.tabJadwalTut === 'aktif') matchTab = (j.status !== 'Canceled');
-                            else if(this.state.temp.tabJadwalTut === 'riwayat_cancel') matchTab = (j.status === 'Canceled');
+                            // Menunggu Cancel disembunyikan dari Aktif, dan dipindah ke Riwayat
+                            if(this.state.temp.tabJadwalTut === 'aktif') {
+                                matchTab = (j.status !== 'Canceled' && j.status !== 'Menunggu Cancel');
+                            }
+                            else if(this.state.temp.tabJadwalTut === 'riwayat_cancel') {
+                                matchTab = (j.status === 'Canceled' || j.status === 'Menunggu Cancel');
+                            }
                             return matchTab && filterFn(j);
                         });
 
