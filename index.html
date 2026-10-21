@@ -719,43 +719,223 @@
 
             views: {
                 home: () => {
-                    const s = App.state.settings; const alur = s.alur_recruitment ? s.alur_recruitment.split(',') : [];
+                    const s = App.state.settings; 
+                    const alur = s.alur_recruitment ? s.alur_recruitment.split(',') : ['Registrasi Awal', 'Tes Online', 'Interview & Microteaching', 'Penawaran Mengajar'];
+                    
                     return `
-                        <div class="min-h-screen relative bg-white">
-                            <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex justify-between items-center transition-all shadow-sm">
-                                <div class="flex items-center gap-3"><img src="${s.logo_url}" class="h-10 rounded-md shadow-sm bg-white p-0.5"><h1 class="text-xl font-bold font-display text-darkblue hidden sm:block">All Education</h1></div>
-                                <div class="hidden md:flex gap-8"><button onclick="App.navigate('home')" class="text-slate-600 font-medium hover:text-royalblue transition pointer-events-auto">Beranda</button><button onclick="App.navigate('recruitment')" class="text-slate-600 font-medium hover:text-royalblue transition pointer-events-auto">Daftar Tutor</button></div>
-                                <div><button onclick="App.navigate('login')" class="bg-royalblue hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-semibold transition shadow-lg shadow-blue-500/30 pointer-events-auto"><i class="fas fa-sign-in-alt mr-2"></i>Admin / Tutor Login</button></div>
+                        <div class="min-h-screen relative bg-slate-50 font-sans">
+                            <!-- NAVBAR -->
+                            <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex justify-between items-center transition-all shadow-sm">
+                                <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='https://www.alleducenter.com/'">
+                                    <img src="${s.logo_url}" class="h-10 rounded-md shadow-sm bg-white p-0.5">
+                                    <h1 class="text-xl font-bold font-display text-darkblue hidden sm:block">All Education</h1>
+                                </div>
+                                <div class="hidden md:flex gap-8">
+                                    <button onclick="App.navigate('home')" class="text-royalblue font-bold hover:text-blue-800 transition pointer-events-auto">Beranda</button>
+                                    <button onclick="App.navigate('recruitment')" class="text-slate-600 font-medium hover:text-royalblue transition pointer-events-auto">Daftar Tutor</button>
+                                    <button onclick="App.navigate('tracking')" class="text-slate-600 font-medium hover:text-royalblue transition pointer-events-auto">Lacak Lamaran</button>
+                                </div>
+                                <div><button onclick="App.navigate('login')" class="bg-white border-2 border-royalblue text-royalblue hover:bg-royalblue hover:text-white px-6 py-2 rounded-full font-bold transition shadow-sm pointer-events-auto"><i class="fas fa-sign-in-alt mr-2"></i>Login Sistem</button></div>
                             </nav>
 
-                            <main class="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
-                                <div class="text-center max-w-4xl relative z-10 mt-10">
-                                    <h2 class="text-5xl md:text-6xl font-extrabold font-display text-darkblue mb-4 leading-tight tracking-tight">Owlstars Management System</h2>
-                                    <h3 class="text-2xl md:text-3xl font-bold text-royalblue mb-6 font-display italic">One Platform for Every Owlstar.</h3>
-                                    <p class="text-slate-500 text-lg mb-10 max-w-3xl mx-auto border-l-4 border-gold pl-4 text-left bg-slate-50 p-4 rounded-r-xl">Platform resmi All Education Indonesia untuk rekrutmen, manajemen tutor, jadwal mengajar, laporan kelas, payroll, dan monitoring operasional dalam satu sistem.</p>
-                                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                                        <button onclick="App.navigate('recruitment')" class="px-8 py-3.5 bg-royalblue text-white font-bold rounded-full hover:bg-blue-700 transition shadow-xl shadow-blue-500/30 text-lg pointer-events-auto">Daftar Jadi Tutor</button>
-                                        <button onclick="App.navigate('tracking')" class="px-8 py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-full hover:bg-slate-50 transition shadow-sm text-lg pointer-events-auto">Lacak Lamaran</button>
+                            <!-- HERO SECTION (Ref: Gambar 1) -->
+                            <div class="pt-32 pb-20 px-6 bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-1/2 h-full bg-white opacity-5 rounded-l-full transform translate-x-1/3 scale-150"></div>
+                                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center relative z-10">
+                                    <div>
+                                        <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold font-display text-white mb-4 leading-tight tracking-tight">JADI OWLSTAR TEACHER <br><span class="text-gold">#BISABANGET</span> BIKIN BANGGA!</h2>
+                                        <p class="text-blue-100 text-lg mb-8 max-w-lg leading-relaxed">Ratusan tutor hebat sudah bergabung dan mengajar di berbagai program unggulan All Education Indonesia. Sekarang giliran kamu untuk meraih pendapatan tambahan!</p>
+                                        <div class="flex flex-col sm:flex-row gap-4">
+                                            <button onclick="App.navigate('recruitment')" class="px-8 py-3.5 bg-gold text-darkblue font-extrabold rounded-full hover:bg-yellow-400 transition shadow-xl text-lg pointer-events-auto flex items-center justify-center gap-2"><i class="fas fa-rocket"></i> Gabung Sekarang</button>
+                                            <button onclick="App.navigate('tracking')" class="px-8 py-3.5 bg-white/20 border border-white/30 text-white font-bold rounded-full hover:bg-white/30 transition shadow-sm text-lg pointer-events-auto backdrop-blur-sm">Lacak Lamaran</button>
+                                        </div>
+                                    </div>
+                                    <div class="hidden md:flex justify-center relative">
+                                        <div class="w-full h-80 bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-6 flex flex-col items-center justify-center shadow-2xl relative">
+                                            <i class="fas fa-chalkboard-teacher text-9xl text-white/50 mb-4"></i>
+                                            <div class="text-white font-bold text-xl text-center">Bergabunglah Bersama<br>Komunitas Tutor Terbaik</div>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="mt-32 w-full max-w-5xl">
-                                    <div class="text-center mb-12"><h3 class="text-3xl font-bold font-display text-darkblue mb-2">Tahapan Rekrutmen Tutor</h3><p class="text-slate-500">Bergabung bersama kami melalui tahapan profesional berikut.</p></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-                                        <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-100 -z-10 transform -translate-y-1/2"></div>
-                                        ${alur.map((step, idx) => `
-                                            <div class="glass-panel p-6 relative z-10 flex flex-col items-center text-center transform transition hover:-translate-y-2">
-                                                <div class="w-12 h-12 rounded-full bg-royalblue text-white flex items-center justify-center font-bold text-xl mb-4 shadow-lg shadow-blue-500/40">${idx+1}</div>
-                                                <h4 class="font-semibold text-sm text-slate-700">${step.trim()}</h4>
-                                            </div>
-                                        `).join('')}
+                            <!-- PRODUK ALL EDUCATION (Ref: Gambar 3) -->
+                            <div class="py-20 px-6 max-w-7xl mx-auto">
+                                <h3 class="text-3xl font-bold font-display text-darkblue mb-10 text-center">Program Layanan All Education</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <!-- Card 1 -->
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
+                                        <div class="flex items-center gap-4 mb-3"><div class="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 text-xl"><i class="fas fa-user-graduate"></i></div><h4 class="font-bold text-teal-600 text-lg">All Education Privat</h4></div>
+                                        <p class="text-sm text-slate-500 leading-relaxed">Layanan bimbingan belajar privat yang dirancang khusus untuk memberikan pendampingan akademik secara personal.</p>
+                                    </div>
+                                    <!-- Card 2 -->
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
+                                        <div class="flex items-center gap-4 mb-3"><div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-xl"><i class="fas fa-child"></i></div><h4 class="font-bold text-sky-600 text-lg">English For Kids</h4></div>
+                                        <p class="text-sm text-slate-500 leading-relaxed">Program pembelajaran bahasa Inggris interaktif yang menyenangkan, khusus didesain untuk anak-anak.</p>
+                                    </div>
+                                    <!-- Card 3 -->
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
+                                        <div class="flex items-center gap-4 mb-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-xl"><i class="fas fa-shapes"></i></div><h4 class="font-bold text-amber-600 text-lg">OwlKids (Calistung)</h4></div>
+                                        <p class="text-sm text-slate-500 leading-relaxed">Program pembelajaran prasekolah terpadu untuk melatih kemampuan dasar Membaca, Menulis, dan Berhitung anak.</p>
+                                    </div>
+                                    <!-- Card 4 -->
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
+                                        <div class="flex items-center gap-4 mb-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl"><i class="fas fa-book-reader"></i></div><h4 class="font-bold text-emerald-600 text-lg">Privat Mengaji</h4></div>
+                                        <p class="text-sm text-slate-500 leading-relaxed">Bimbingan belajar membaca Al-Qur'an secara tartil dengan metode yang mudah dipahami berbagai kalangan usia.</p>
+                                    </div>
+                                    <!-- Card 5 -->
+                                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition">
+                                        <div class="flex items-center gap-4 mb-3"><div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl"><i class="fas fa-university"></i></div><h4 class="font-bold text-indigo-600 text-lg">PRIME By All Education</h4></div>
+                                        <p class="text-sm text-slate-500 leading-relaxed">Program persiapan intensif UTBK, SNBT, dan Ujian Mandiri untuk sukses menembus Perguruan Tinggi Negeri impian.</p>
                                     </div>
                                 </div>
-                            </main>
+                            </div>
+
+                            <!-- KENAPA HARUS GABUNG (Ref: Gambar 4) -->
+                            <div class="py-20 bg-blue-50/50 border-y border-blue-100 px-6">
+                                <div class="max-w-7xl mx-auto">
+                                    <h3 class="text-3xl font-bold font-display text-darkblue mb-3 text-center">Kenapa Harus Gabung Menjadi Owlstars?</h3>
+                                    <p class="text-slate-500 text-center mb-12">Dapatkan berbagai keuntungan eksklusif dengan bergabung menjadi Tutor kami!</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                        <div class="bg-white p-6 rounded-3xl border-b-4 border-green-400 shadow-sm flex flex-col h-full">
+                                            <h4 class="font-bold text-darkblue text-lg mb-3">Punya Komunitas Besar</h4>
+                                            <p class="text-sm text-slate-500 flex-1 leading-relaxed">Bergabung bersama ratusan pengajar hebat untuk mendapatkan banyak manfaat dan berbagi pengalaman.</p>
+                                            <i class="fas fa-users text-4xl text-green-100 mt-4"></i>
+                                        </div>
+                                        <div class="bg-white p-6 rounded-3xl border-b-4 border-amber-400 shadow-sm flex flex-col h-full">
+                                            <h4 class="font-bold text-darkblue text-lg mb-3">Raih Pendapatan Tambahan</h4>
+                                            <p class="text-sm text-slate-500 flex-1 leading-relaxed">Dapatkan penghasilan jutaan rupiah per bulan. Ubah waktu luangmu menjadi peluang emas!</p>
+                                            <i class="fas fa-hand-holding-usd text-4xl text-amber-100 mt-4"></i>
+                                        </div>
+                                        <div class="bg-white p-6 rounded-3xl border-b-4 border-blue-400 shadow-sm flex flex-col h-full">
+                                            <h4 class="font-bold text-darkblue text-lg mb-3">Mengajar Super Fleksibel</h4>
+                                            <p class="text-sm text-slate-500 flex-1 leading-relaxed">Nikmati fleksibilitas mengajar dimana saja dan kapan saja. Sangat cocok untuk kamu yang produktif.</p>
+                                            <i class="fas fa-laptop-house text-4xl text-blue-100 mt-4"></i>
+                                        </div>
+                                        <div class="bg-white p-6 rounded-3xl border-b-4 border-pink-400 shadow-sm flex flex-col h-full">
+                                            <h4 class="font-bold text-darkblue text-lg mb-3">Tingkatkan Skill Mengajar</h4>
+                                            <p class="text-sm text-slate-500 flex-1 leading-relaxed">Ikuti training internal dan akses materi berkualitas untuk terus berkembang sebagai pengajar profesional.</p>
+                                            <i class="fas fa-box-open text-4xl text-pink-100 mt-4"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAHAPAN REKRUTMEN (Ref: Gambar 5) -->
+                            <div class="py-20 px-6 max-w-7xl mx-auto bg-white">
+                                <h3 class="text-3xl font-bold font-display text-darkblue mb-12 text-center">Tahapan Pendaftaran Owlstars</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                                    <div class="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-blue-100 -z-10 border-t-2 border-dashed border-blue-200"></div>
+                                    
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-12 h-12 rounded-full bg-royalblue text-white flex items-center justify-center font-bold text-xl mb-4 shadow-lg ring-8 ring-white">${alur[0] ? '1' : ''}</div>
+                                        <h4 class="font-bold text-darkblue mb-3">${alur[0] || 'Registrasi Awal'}</h4>
+                                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-500 w-full">Daftar sekarang melalui sistem kami dan lengkapi profilmu beserta mata pelajaran yang ingin diajarkan.</div>
+                                    </div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-12 h-12 rounded-full bg-royalblue text-white flex items-center justify-center font-bold text-xl mb-4 shadow-lg ring-8 ring-white">${alur[1] ? '2' : ''}</div>
+                                        <h4 class="font-bold text-darkblue mb-3">${alur[1] || 'Screening & Tes'}</h4>
+                                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-500 w-full">Tunjukkan keahlian terbaikmu dan pengalaman mengajarmu. Profil yang lengkap akan lebih cepat diproses HRD.</div>
+                                    </div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-12 h-12 rounded-full bg-royalblue text-white flex items-center justify-center font-bold text-xl mb-4 shadow-lg ring-8 ring-white">${alur[2] ? '3' : ''}</div>
+                                        <h4 class="font-bold text-darkblue mb-3">${alur[2] || 'Interview & Microteaching'}</h4>
+                                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-500 w-full">Bersiaplah untuk tahap berikutnya. Tunjukkan kemampuan simulasi mengajarmu secara interaktif.</div>
+                                    </div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-12 h-12 rounded-full bg-royalblue text-white flex items-center justify-center font-bold text-xl mb-4 shadow-lg ring-8 ring-white">${alur[3] ? '4' : ''}</div>
+                                        <h4 class="font-bold text-darkblue mb-3">${alur[3] || 'Penawaran Mengajar'}</h4>
+                                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-500 w-full">Selamat! Kamu lolos seleksi. Offering letter dan akun akses sistem OMS akan segera dikirimkan.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FAQ SECTION (Ref: Gambar 6) -->
+                            <div class="py-20 px-6 bg-gradient-to-b from-blue-50 to-blue-100">
+                                <div class="max-w-4xl mx-auto">
+                                    <h3 class="text-3xl font-bold font-display text-darkblue mb-10 text-center">Pertanyaan yang Sering Diajukan (FAQ)</h3>
+                                    <div class="space-y-4">
+                                        <details class="group bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden cursor-pointer pointer-events-auto">
+                                            <summary class="font-bold text-slate-700 px-6 py-4 flex justify-between items-center outline-none">Apakah saya harus memiliki pengalaman mengajar sebelum mendaftar? <i class="fas fa-chevron-down text-royalblue transition group-open:rotate-180"></i></summary>
+                                            <div class="px-6 pb-4 text-sm text-slate-500">Pengalaman mengajar akan menjadi nilai tambah yang besar, namun fresh graduate yang memiliki dedikasi dan kemampuan komunikasi yang baik juga sangat dipersilakan untuk melamar!</div>
+                                        </details>
+                                        <details class="group bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden cursor-pointer pointer-events-auto">
+                                            <summary class="font-bold text-slate-700 px-6 py-4 flex justify-between items-center outline-none">Apakah saya harus memiliki gelar pendidikan tertentu untuk bisa mengajar? <i class="fas fa-chevron-down text-royalblue transition group-open:rotate-180"></i></summary>
+                                            <div class="px-6 pb-4 text-sm text-slate-500">Tidak wajib dari jurusan pendidikan. Jika kamu ahli dan menguasai materi pada suatu bidang pelajaran, kamu dipersilakan mendaftar.</div>
+                                        </details>
+                                        <details class="group bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden cursor-pointer pointer-events-auto">
+                                            <summary class="font-bold text-slate-700 px-6 py-4 flex justify-between items-center outline-none">Apakah saya bisa mengajar sambil bekerja atau kuliah? <i class="fas fa-chevron-down text-royalblue transition group-open:rotate-180"></i></summary>
+                                            <div class="px-6 pb-4 text-sm text-slate-500">Tentu saja! Jadwal mengajar di All Education bersifat fleksibel. Kamu bisa menyesuaikan jadwal luangmu dengan jadwal siswa.</div>
+                                        </details>
+                                        <details class="group bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden cursor-pointer pointer-events-auto">
+                                            <summary class="font-bold text-slate-700 px-6 py-4 flex justify-between items-center outline-none">Apakah ada batasan umur untuk menjadi guru di All Education? <i class="fas fa-chevron-down text-royalblue transition group-open:rotate-180"></i></summary>
+                                            <div class="px-6 pb-4 text-sm text-slate-500">Tidak ada batasan umur spesifik selama kamu masih enerjik, mampu berkomunikasi dengan baik ke siswa, dan menguasai materi ajar.</div>
+                                        </details>
+                                        <details class="group bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden cursor-pointer pointer-events-auto">
+                                            <summary class="font-bold text-slate-700 px-6 py-4 flex justify-between items-center outline-none">Apakah saya bisa memilih jenjang kelas (SD/SMP/SMA) yang ingin saya ajar? <i class="fas fa-chevron-down text-royalblue transition group-open:rotate-180"></i></summary>
+                                            <div class="px-6 pb-4 text-sm text-slate-500">Sangat bisa. Saat pendaftaran, kamu bisa memilih spesialisasi jenjang dan mata pelajaran yang paling kamu kuasai.</div>
+                                        </details>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- FOOTER (Ref: Gambar 7) -->
+                            <footer class="bg-[#0f172a] text-slate-300 pt-16 pb-8 px-6 relative">
+                                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 border-b border-slate-700 pb-10">
+                                    <!-- Column 1 -->
+                                    <div>
+                                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">Coba GRATIS Aplikasi <br> All Education <i class="fas fa-sync text-teal-400 text-sm"></i></h3>
+                                        <button onclick="window.location.href='https://www.alleducenter.com/'" class="bg-teal-500 hover:bg-teal-400 text-white font-bold py-2.5 px-6 rounded-lg transition pointer-events-auto shadow-lg shadow-teal-500/20">Klik di Sini untuk Daftar</button>
+                                    </div>
+                                    <!-- Column 2 -->
+                                    <div>
+                                        <h4 class="text-white font-bold text-lg mb-4">Produk Utama</h4>
+                                        <ul class="space-y-3 text-sm">
+                                            <li class="hover:text-teal-400 cursor-pointer transition flex items-center gap-2"><i class="fas fa-caret-right text-teal-500"></i> All Education Privat</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition flex items-center gap-2"><i class="fas fa-caret-right text-teal-500"></i> English For Kids</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition flex items-center gap-2"><i class="fas fa-caret-right text-teal-500"></i> OwlKids (Calistung)</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition flex items-center gap-2"><i class="fas fa-caret-right text-teal-500"></i> Privat Mengaji</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition flex items-center gap-2"><i class="fas fa-caret-right text-teal-500"></i> PRIME By All Education</li>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 3 -->
+                                    <div>
+                                        <h4 class="text-white font-bold text-lg mb-4">Bantuan & Panduan</h4>
+                                        <ul class="space-y-3 text-sm">
+                                            <li class="hover:text-teal-400 cursor-pointer transition">Tentang Kami</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition">Program Belajar</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition">Syarat & Ketentuan</li>
+                                            <li class="hover:text-teal-400 cursor-pointer transition">Kebijakan Privasi</li>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 4 -->
+                                    <div>
+                                        <h4 class="text-white font-bold text-lg mb-4">Hubungi Kami</h4>
+                                        <ul class="space-y-4 text-sm">
+                                            <li class="flex items-start gap-3"><i class="far fa-envelope mt-1 text-teal-400"></i> info@alleducation.web.id</li>
+                                            <li class="flex items-start gap-3"><i class="fas fa-phone-alt mt-1 text-teal-400"></i> 6285161773934</li>
+                                            <li class="flex items-start gap-3 leading-relaxed"><i class="fas fa-map-marker-alt mt-1 text-teal-400"></i> Jl. Ciherang Blok L2 Dramaga,<br>Kabupaten Bogor</li>
+                                        </ul>
+                                        <div class="flex gap-4 mt-6">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 flex items-center justify-center text-white cursor-pointer hover:scale-110 transition"><i class="fab fa-instagram"></i></div>
+                                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white cursor-pointer hover:scale-110 transition"><i class="fab fa-facebook-f"></i></div>
+                                            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white cursor-pointer hover:scale-110 transition"><i class="fab fa-youtube"></i></div>
+                                            <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white cursor-pointer hover:scale-110 transition"><i class="fab fa-twitter"></i></div>
+                                            <div class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white cursor-pointer hover:scale-110 transition"><i class="fab fa-tiktok"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center text-xs mt-8 text-slate-500">&copy; 2026 PT All Education Indonesia. All rights reserved.</div>
+                                
+                                <!-- FLOATING WA BUTTON -->
+                                <a href="https://wa.me/6285161773934" target="_blank" class="fixed bottom-6 right-6 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl shadow-xl hover:bg-green-600 hover:scale-110 transition z-50 pointer-events-auto">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </footer>
                         </div>
                     `;
                 },
-
                 recruitment: () => `
                     <div class="min-h-screen bg-slate-50 p-6 flex flex-col items-center pt-24 pb-20 relative">
                         <button onclick="App.navigate('home')" class="absolute top-6 left-6 text-slate-500 hover:text-royalblue font-medium flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm pointer-events-auto"><i class="fas fa-arrow-left"></i> Kembali</button>
