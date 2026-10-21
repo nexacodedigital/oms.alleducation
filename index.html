@@ -32,7 +32,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { darkblue: '#0f172a', royalblue: '#2563eb', gold: '#f59e0b', background: '#f8fafc', surface: '#ffffff' },
+                    colors: { darkblue: '#0f172a', royalblue: '#1d4ed8', gold: '#ffb703', background: '#f8fafc', surface: '#ffffff' },
                     fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Poppins', 'sans-serif'] }
                 }
             }
@@ -538,6 +538,16 @@
             },
 
             init() {
+                // Set Default Tanggal Filter ke Periode Cut-Off (Tgl 1 s/d Akhir Bulan Ini)
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                
+                this.state.filters.tglMulai = firstDay;
+                this.state.filters.tglAkhir = lastDay;
+                this.state.filters.rincianTglMulai = firstDay;
+                this.state.filters.rincianTglAkhir = lastDay;
+
                 const savedSession = localStorage.getItem('oms_session');
                 const savedDb = localStorage.getItem('oms_db_cache');
                 
@@ -621,12 +631,19 @@
                         return { id: j.id, title: j.siswa.replace('ROMBEL - ', ''), start: jDate + 'T' + startTime + ':00', backgroundColor: bgColor, borderColor: bgColor };
                     });
 
+                    const isMobile = window.innerWidth < 768;
                     const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
-                        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+                        initialView: isMobile ? 'listMonth' : 'dayGridMonth',
+                        headerToolbar: isMobile 
+                            ? { left: 'prev,next', center: 'title', right: 'today' } 
+                            : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
                         events: events,
                         eventClick: function(info) { App.state.temp.detailJadwalId = info.event.id; App.changeTutorView('jadwal'); },
-                        height: 'auto', locale: 'id', buttonText: { today:'Hari Ini', month:'Bulan', week:'Minggu', day:'Hari', list:'Agenda' }
+                        height: isMobile ? 'auto' : 600,
+                        contentHeight: 'auto',
+                        stickyHeaderDates: true,
+                        locale: 'id', 
+                        buttonText: { today:'Hari Ini', month:'Bulan', week:'Minggu', day:'Hari', list:'Agenda' }
                     });
                     calendar.render();
                 }, 100);
@@ -1607,11 +1624,22 @@
                         `, 
                             this.renderTable(['Tgl & Jam', 'Siswa / Kelas', 'Layanan', 'Status', 'Aksi'], filteredJadwalTutor.map(j => {
                                 let rescInfo = j.is_rescheduled == 1 ? `<div class="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200 mt-1 whitespace-nowrap"><i class="fas fa-calendar-day"></i> Rescheduled</div>` : '';
+                                let jDate = String(j.tgl).split('T')[0];
+                                let d = new Date(); let localTodayDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                                
+                                let displayStatus = j.status; let badgeColor = '';
+                                if (j.status === 'Upcoming' && jDate === localTodayDate) { displayStatus = 'HARI INI'; badgeColor = 'bg-blue-600 text-white animate-pulse shadow-sm shadow-blue-500/50'; }
+                                else if (j.status === 'Selesai') badgeColor = 'bg-emerald-100 text-emerald-700';
+                                else if (j.status === 'Buka Akses') badgeColor = 'bg-sky-100 text-sky-700';
+                                else if (j.status === 'Menunggu Cancel') badgeColor = 'bg-amber-100 text-amber-700';
+                                else if (j.status === 'Canceled') badgeColor = 'bg-slate-200 text-slate-500';
+                                else badgeColor = 'bg-indigo-100 text-indigo-700';
+
                                 return [
                                     `<b>${this.formatTgl(j.tgl)}</b><br><span class="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 mt-1 inline-block whitespace-nowrap"><i class="far fa-clock"></i> ${j.jam}</span>${rescInfo}`, 
                                     `<b>${j.siswa.replace('ROMBEL - ', '')}</b>`,
                                     `<span class="text-xs text-royalblue font-bold whitespace-nowrap">${j.jenis_layanan}</span><br><span class="text-[10px] text-slate-500 whitespace-nowrap">${j.lokasi==='Offline'?'Tatap Muka':'Online Zoom'}</span>`,
-                                    `<span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${j.status==='Selesai'?'bg-emerald-100 text-emerald-700':j.status==='Buka Akses'?'bg-sky-100 text-sky-700': j.status==='Menunggu Cancel'?'bg-amber-100 text-amber-700' : j.status==='Canceled'?'bg-slate-200 text-slate-500':'bg-indigo-100 text-indigo-700'}">${j.status}</span>`,
+                                    `<span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${badgeColor}">${displayStatus}</span>`,
                                     `<button onclick="App.state.temp.detailJadwalId='${j.id}'; App.render()" class="bg-white border border-slate-300 text-slate-700 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50 shadow-sm transition whitespace-nowrap pointer-events-auto">Lihat Detail <i class="fas fa-arrow-right ml-1"></i></button>`
                                 ];
                             }).reverse(), "Tidak ada jadwal di periode ini.")
@@ -1723,7 +1751,7 @@
                                 <div class="sm:col-span-2"><label class="text-xs font-bold text-slate-500 mb-1 block">Catatan Evaluasi / Hasil Hari Ini *</label><textarea id="rep_has" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-royalblue shadow-inner relative z-10 pointer-events-auto" rows="2" placeholder="Siswa sudah mampu mengerjakan soal..."></textarea></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Target Minggu Depan (Opsional)</label><input type="text" id="rep_tar" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-royalblue shadow-sm relative z-10 pointer-events-auto" placeholder="Lanjut bab selanjutnya"></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Pesan untuk Ayah/Bunda *</label><input type="text" id="rep_pes" required class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-royalblue shadow-sm relative z-10 pointer-events-auto" placeholder="Mohon dampingi PR di rumah."></div>
-                                <div class="sm:col-span-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col gap-2 relative z-10"><label class="text-xs font-bold text-royalblue mb-1 block"><i class="fas fa-camera"></i> Upload Foto KBM (Galeri/Kamera) *</label><input type="file" id="rep_foto" accept="image/*" required class="w-full text-sm file:mr-4 file:py-2.5 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-royalblue file:text-white hover:file:bg-blue-700 cursor-pointer pointer-events-auto"></div>
+                                <div class="sm:col-span-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col gap-2 relative z-10"><label class="text-xs font-bold text-royalblue mb-1 block"><i class="fas fa-camera"></i> Upload Foto KBM (Bisa Lebih Dari 1) *</label><input type="file" id="rep_foto" accept="image/*" multiple required class="w-full text-sm file:mr-4 file:py-2.5 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-royalblue file:text-white hover:file:bg-blue-700 cursor-pointer pointer-events-auto"></div>
                                 <div class="sm:col-span-2 mt-4"><button type="submit" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 text-base sm:text-lg flex items-center justify-center gap-2 pointer-events-auto"><i class="fas fa-paper-plane"></i> Submit Report & Absen Selesai</button></div>
                             </form>
                         </div>
@@ -1774,35 +1802,49 @@
                 e.preventDefault();
                 const isRombel = namaSiswa.startsWith('ROMBEL - ');
                 
-                // Collect attendance if Rombel
                 let absensiObj = {};
                 if (isRombel) {
                     const selects = document.querySelectorAll('select[id^="absensi_rombel_"]');
                     if (selects.length === 0) return Swal.fire('Error', 'Tidak ada siswa di rombel ini.', 'error');
-                    selects.forEach(sel => {
-                        const sName = sel.getAttribute('data-nama');
-                        absensiObj[sName] = sel.value;
-                    });
+                    selects.forEach(sel => { absensiObj[sel.getAttribute('data-nama')] = sel.value; });
                 }
 
-                const file = document.getElementById('rep_foto').files[0]; const reader = new FileReader();
-                reader.onloadend = () => {
-                    const img = new Image(); img.src = reader.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const MAX_WIDTH = 600;
-                        const scaleSize = MAX_WIDTH / img.width; canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
-                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        const base64 = canvas.toDataURL('image/jpeg', 0.7);
-                        const payload = {
-                            idJadwal: idJadwal, id_tutor: this.state.user.id_tutor, nama_tutor: this.state.user.nama, nama_siswa: namaSiswa, 
-                            materi: document.getElementById('rep_mat').value, pemahaman_star: document.getElementById('rep_p1').value, kemandirian_star: document.getElementById('rep_p2').value,
-                            hasil_evaluasi: document.getElementById('rep_has').value, target: document.getElementById('rep_tar').value, pesan_ortu: document.getElementById('rep_pes').value,
-                            link_foto: base64, absensi_json: JSON.stringify(absensiObj)
+                const files = document.getElementById('rep_foto').files;
+                if (!files.length) return Swal.fire('Error', 'Pilih minimal 1 foto', 'error');
+
+                App.showLoader(); // Munculkan loader krn multi-foto memakan waktu compress
+                
+                const readAndCompress = (file) => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            const img = new Image(); img.src = reader.result;
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas'); const MAX_WIDTH = 500;
+                                const scaleSize = MAX_WIDTH / img.width; canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                                const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                resolve(canvas.toDataURL('image/jpeg', 0.6));
+                            }
                         };
-                        this.performAPIAction('submitReport', payload, isRombel ? 'Report & Absensi Kelas Terkirim ke Semua Ortu' : 'Report Sukses Terkirim & Ortu Diinfokan');
-                    }
+                        reader.readAsDataURL(file);
+                    });
                 };
-                if(file) reader.readAsDataURL(file);
+
+                // Proses semua foto sekaligus
+                const filePromises = Array.from(files).map(f => readAndCompress(f));
+                
+                Promise.all(filePromises).then(base64Array => {
+                    // Gabungkan foto jadi Array JSON
+                    const joinedBase64 = JSON.stringify(base64Array); 
+                    
+                    const payload = {
+                        idJadwal: idJadwal, id_tutor: this.state.user.id_tutor, nama_tutor: this.state.user.nama, nama_siswa: namaSiswa, 
+                        materi: document.getElementById('rep_mat').value, pemahaman_star: document.getElementById('rep_p1').value, kemandirian_star: document.getElementById('rep_p2').value,
+                        hasil_evaluasi: document.getElementById('rep_has').value, target: document.getElementById('rep_tar').value, pesan_ortu: document.getElementById('rep_pes').value,
+                        link_foto: joinedBase64, absensi_json: JSON.stringify(absensiObj)
+                    };
+                    this.performAPIAction('submitReport', payload, isRombel ? 'Report & Absensi Kelas Terkirim ke Semua Ortu' : 'Report Sukses Terkirim & Ortu Diinfokan');
+                });
             },
 
            modalCancelJadwal(id) {
