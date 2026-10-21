@@ -23,11 +23,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- PDF Libraries for Premium Reports -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <!-- FullCalendar JS untuk Teacher Schedule -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <!-- PDF & Calendar Libraries (Pakai defer agar loading awal instan) -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -556,8 +555,9 @@
                     } catch(e){}
                 }
 
-                if (this.state.dataLoaded) { const loader = document.getElementById('initial-loader'); if(loader) loader.remove(); }
-                this.render(); 
+                const loader = document.getElementById('initial-loader'); 
+                if (loader) loader.remove();
+                this.render();
                 
                 setInterval(() => { const now = new Date(); const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']; this.state.time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} WIB`; this.state.day = days[now.getDay()]; const clockEl = document.getElementById('rt-clock'); if(clockEl) clockEl.innerText = `${this.state.day}, ${this.state.time}`; }, 1000);
                 
@@ -725,7 +725,12 @@
                         if(!silent && successMsg) Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, icon: 'success', title: successMsg });
                     }
 
-                    const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: actionName, ...payload }) });
+                    const response = await fetch(GAS_URL, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: actionName, ...payload }),
+                        redirect: 'follow'
+                    });
                     const res = await response.json();
                     
                     if (!silent && isBlocking && Swal.isVisible()) Swal.close();
@@ -734,9 +739,24 @@
                         if(actionName === 'getData') { 
                             this.state.dataLoaded = true;
                             const loader = document.getElementById('initial-loader'); if(loader) loader.remove();
-                            const newDataStr = JSON.stringify({db: res.data, settings: res.settings});
-                            const oldDataStr = localStorage.getItem('oms_db_cache');
-                            if(newDataStr !== oldDataStr) { this.state.db = res.data; this.state.settings = res.settings; localStorage.setItem('oms_db_cache', newDataStr); this.render(); }
+                            
+                            // Tetap simpan data lengkap di RAM aplikasi
+                            this.state.db = res.data; 
+                            this.state.settings = res.settings; 
+                            
+                            // Simpan versi ringan ke localStorage agar tidak error memori penuh
+                            try {
+                                const lightReport = (res.data.report || []).map(r => ({
+                                    ...r,
+                                    link_foto: (r.link_foto && String(r.link_foto).startsWith('data:image')) ? '-' : r.link_foto
+                                }));
+                                const cacheStr = JSON.stringify({ db: { ...res.data, report: lightReport }, settings: res.settings });
+                                localStorage.setItem('oms_db_cache', cacheStr);
+                            } catch (storageErr) {
+                                console.warn('LocalStorage penuh, melewati penyimpanan cache:', storageErr);
+                                localStorage.removeItem('oms_db_cache');
+                            }
+                            this.render();
                         } else { this.fetchDataRealtime(); }
                         if(!silent && isBlocking && successMsg) Swal.fire({ icon: 'success', title: 'Berhasil', text: successMsg, timer: 1500, showConfirmButton: false });
                     } else { 
@@ -1538,24 +1558,24 @@
                                 <div id="tutor-calendar" class="min-h-[500px] pointer-events-auto relative z-20"></div>
                             </div>
                         `);
-                   case 'profil':
-                        const profData = db.tutor.find(t => t.id === u.id_tutor) || {};
-                        const defaultFoto = profData.foto||'https://ui-avatars.com/api/?name='+u.nama.replace(/ /g,'+');
+                  case 'profil':
+                        const pDataProf = db.tutor.find(t => t.id === u.id_tutor) || {};
+                        const defFotoProf = pDataProf.foto || 'https://ui-avatars.com/api/?name=' + u.nama.replace(/ /g,'+');
                         return this.wrap('Data Profil & Administrasi', 'fa-user', '', `
                             <form onsubmit="event.preventDefault(); App.performAPIAction('updateProfil', {id_tutor: '${u.id_tutor}', no_hp: document.getElementById('pf_hp').value, bank: document.getElementById('pf_bank').value, no_rek: document.getElementById('pf_rek').value, foto: document.getElementById('pf_foto_base64').value, pass: document.getElementById('pf_pass').value}, 'Profil Diperbarui')" class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl relative">
                                 <div class="md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
-                                    <img src="${defaultFoto}" id="pf_foto_preview" class="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm bg-white p-0.5 object-cover shrink-0">
+                                    <img src="${defFotoProf}" id="pf_foto_preview" class="w-16 h-16 rounded-full border-2 border-slate-200 shadow-sm bg-white p-0.5 object-cover shrink-0">
                                     <div class="flex-1 w-full overflow-hidden">
                                         <label class="text-xs font-bold text-slate-500 mb-1 block">Upload Foto Profil Baru (Otomatis Tampil)</label>
                                         <input type="file" id="pf_foto_file" accept="image/*" onchange="App.handleProfilePicUpload(event)" class="w-full bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-royalblue transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-royalblue hover:file:bg-blue-100 cursor-pointer pointer-events-auto">
-                                        <input type="hidden" id="pf_foto_base64" value="${defaultFoto}">
+                                        <input type="hidden" id="pf_foto_base64" value="${defFotoProf}">
                                     </div>
                                 </div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Lengkap</label><input type="text" value="${u.nama}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-500 cursor-not-allowed"></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Email Login</label><input type="text" value="${u.email}" disabled class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-500 cursor-not-allowed"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No WhatsApp Aktif</label><input type="text" id="pf_hp" value="${profData.no_hp||''}" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Bank</label><input type="text" id="pf_bank" value="${profData.bank||''}" placeholder="Contoh: BCA, Mandiri" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
-                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No Rekening</label><input type="text" id="pf_rek" value="${profData.no_rek||''}" placeholder="Nomor rekening yang valid" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No WhatsApp Aktif</label><input type="text" id="pf_hp" value="${pDataProf.no_hp||''}" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Bank</label><input type="text" id="pf_bank" value="${pDataProf.bank||''}" placeholder="Contoh: BCA, Mandiri" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
+                                <div><label class="text-xs font-bold text-slate-500 mb-1 block">No Rekening</label><input type="text" id="pf_rek" value="${pDataProf.no_rek||''}" placeholder="Nomor rekening yang valid" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
                                 <div class="md:col-span-2 pt-4 border-t border-slate-100"><h4 class="font-bold text-darkblue mb-4 text-sm"><i class="fas fa-lock text-slate-400"></i> Ganti Password Akun</h4></div>
                                 <div><label class="text-xs font-bold text-slate-500 mb-1 block">Password Baru</label><input type="password" id="pf_pass" placeholder="Kosongkan jika tidak diganti" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:border-royalblue transition shadow-sm relative z-10 pointer-events-auto"></div>
                                 <div class="md:col-span-2 mt-4"><button type="submit" class="w-full sm:w-auto bg-royalblue text-white px-8 py-3 rounded-xl font-bold shadow-md shadow-blue-500/30 hover:bg-blue-700 transition pointer-events-auto">Simpan Perubahan Profil</button></div>
